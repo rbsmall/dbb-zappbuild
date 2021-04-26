@@ -45,7 +45,7 @@ buildUtils.createLanguageDatasets(langQualifier)
 //CMSYNIN  DD *
 SYSPROF                         
 SYSOBJH                         
-${natural_loadParms}    
+${props.natural_loadParms}    
 STOP
 /*
 """
