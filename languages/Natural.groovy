@@ -37,16 +37,18 @@ buildUtils.createLanguageDatasets(langQualifier)
 	if (props.verbose) println ("*** Jobcard is ${jobcard}")
 	String jcl = jobcard
 	jcl += """\
-\n//*
-//SYSOBJH  EXEC PGM=NAT23BA,REGION=4M, 
-//  PARM=('PARM=${props.natural_jobParms}')        
-//CMPRINT  DD  SYSOUT=*
-//CMWKF01  DD DISP=SHR,DSN=${props.natural_srcPDS} 
-//CMSYNIN  DD *
-SYSPROF                         
-SYSOBJH                         
-${props.natural_loadParms}    
-STOP
+\n//       MSGCLASS=H,MSGLEVEL=(1,1),TIME=(,4),REGION=0M
+//******************************************************
+//*    IDCAMS VERIFY
+//******************************************************
+//STEP01  EXEC PGM=IDCAMS
+//SYSPRINT  DD SYSOUT=*
+//SYSIN     DD *
+         LISTCAT  ENTRIES(BSMALL.ACCOUNT.FILE) -
+                  ALL
+         VERIFY   DATASET(BSMALL.ACCOUNT.FILE)
+         LISTCAT  ENTRIES(BSMALL.ACCOUNT.FILE) -
+                  ALL
 /*
 """
 	
