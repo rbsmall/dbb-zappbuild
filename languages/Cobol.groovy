@@ -322,7 +322,8 @@ def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String memb
 	if (buildUtils.isCICS(logicalFile))
 		linkedit.dd(new DDStatement().dsn(props.SDFHLOAD).options("shr"))
 	
-	if (buildUtils.isSQL(logicalFile))
+//	if (buildUtils.isSQL(logicalFile))
+		if (props.verbose) println "***Adding SYSLIB statement to cobol link"
 		linkedit.dd(new DDStatement().dsn(props.SDSNLOAD).options("shr"))
 
 	String isMQ = props.getFileProperty('cobol_isMQ', buildFile)
