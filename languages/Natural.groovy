@@ -33,6 +33,7 @@ buildUtils.createLanguageDatasets(langQualifier)
 
 	// Create JCLExec String
 	String jobcard = props.natural_jobCard.replace("\\n", "\n")
+	if (props.verbose) println ('*** Jobcard is ${jobcard}')
 	String jcl = jobcard
 	jcl += """\
 \n//*
