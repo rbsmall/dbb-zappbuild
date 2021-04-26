@@ -13,6 +13,7 @@ import groovy.transform.*
 @Field RepositoryClient repositoryClient
 
 println("** Building files mapped to ${this.class.getName()}.groovy script")
+println("** Props ${props}")
 
 // verify required build properties
 buildUtils.assertBuildProperties(props.natural_requiredBuildProperties)
