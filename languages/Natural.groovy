@@ -37,8 +37,7 @@ buildUtils.createLanguageDatasets(langQualifier)
 	if (props.verbose) println ("*** Jobcard is ${jobcard}")
 	String jcl = jobcard
 	jcl += """\
-\n//       MSGCLASS=H,MSGLEVEL=(1,1),TIME=(,4),REGION=0M
-//******************************************************
+\n//******************************************************
 //*    IDCAMS VERIFY
 //******************************************************
 //STEP01  EXEC PGM=IDCAMS
