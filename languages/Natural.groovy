@@ -70,6 +70,7 @@ STOP
 
 	// Splitting the String into a StringArray using CC as the separator
 	def jobRcStringArray = naturalLoadJCL.maxRC.split("CC")
+	println "*** jobRcStringArray - ${jobRcStringArray}"
 
 	// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
 	if ( jobRcStringArray.length > 1 ){
@@ -80,9 +81,9 @@ STOP
 		if (rc <= props.natural_maxRC.toInteger()){
 			println   "***  Natural Load Job ${naturalLoadJCL.submittedJobId} completed with $rc "
 			// Store Report in Workspace
-		} else { // rc > props.zunit_maxWarnRC.toInteger()
+		} else { 
 			props.error = "true"
-			String errorMsg = "*! The Natural Build failed with RC=($rc) for $buildFile "
+			String errorMsg = "*! The Natural Load Job failed with RC=($rc) for $buildFile "
 			println(errorMsg)
 			buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
 		}
