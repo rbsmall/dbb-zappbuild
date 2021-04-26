@@ -34,14 +34,14 @@ buildUtils.createLanguageDatasets(langQualifier)
 
 	// Create JCLExec String
 	String jobcard = props.natural_jobCard.replace("\\n", "\n")
-	if (props.verbose) println ('*** Jobcard is ${jobcard}')
+	if (props.verbose) println ("*** Jobcard is ${jobcard}")
 	String jcl = jobcard
 	jcl += """\
 \n//*
 //SYSOBJH  EXEC PGM=NAT23BA,REGION=4M, 
-//  PARM=('PARM=${natural_jobParms}')        
+//  PARM=('PARM=${props.natural_jobParms}')        
 //CMPRINT  DD  SYSOUT=*
-//CMWKF01  DD DISP=SHR,DSN=${natural_srcPDS} 
+//CMWKF01  DD DISP=SHR,DSN=${props.natural_srcPDS} 
 //CMSYNIN  DD *
 SYSPROF                         
 SYSOBJH                         
