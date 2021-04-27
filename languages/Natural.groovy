@@ -35,6 +35,7 @@ buildUtils.createLanguageDatasets(langQualifier)
 	// copy build file and dependency files to data sets
 	String rules = props.getFileProperty('natural_resolutionRules', buildFile)
 	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
+	buildUtils.copySourceFiles(buildFile, props.natural_srcPDS, props.natural_incPDS, dependencyResolver)
 	LogicalFile logicalFile = dependencyResolver.getLogicalFile()
 	String member = CopyToPDS.createMemberName(buildFile)
 	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.natural.log")
