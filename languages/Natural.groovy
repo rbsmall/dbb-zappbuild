@@ -90,6 +90,7 @@ STOP
 	}
 	else {
 		// We don't see the CC, assume an exception
+		def rc = 99
 		props.error = "true"
 		String errorMsg = "*!  Natural Load Job ${naturalLoadJCL.submittedJobId} failed with ${naturalLoadJCL.maxRC}"
 		println(errorMsg)
