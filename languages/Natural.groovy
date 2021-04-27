@@ -96,7 +96,6 @@ STOP
 		buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
 	}
 
-	rc = 0	
 	if (rc <= props.natural_maxRC.toInteger()) {
 		jcl = jobcard
 		jcl += """\
