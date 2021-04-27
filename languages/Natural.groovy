@@ -31,6 +31,24 @@ buildUtils.createLanguageDatasets(langQualifier)
 	File logFile = new File("${props.buildOutDir}/${member}.natural.load.log")
 
 //	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
+	
+	// copy build file and dependency files to data sets
+	String rules = props.getFileProperty('natural_resolutionRules', buildFile)
+	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
+	LogicalFile logicalFile = dependencyResolver.getLogicalFile()
+	String member = CopyToPDS.createMemberName(buildFile)
+	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.natural.log")
+	if (logFile.exists())
+		logFile.delete()
+
+	
+	
+	
+	
+	
+	
+	
+	
 
 	// Create JCLExec String
 	String jobcard = props.natural_jobCard.replace("\\n", "\n")
