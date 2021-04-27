@@ -26,9 +26,9 @@ buildUtils.createLanguageDatasets(langQualifier)
 (argMap.buildList).each { buildFile ->
 	println "*** Building file $buildFile"
 
-	String member = CopyToPDS.createMemberName(buildFile)
+//	String member = CopyToPDS.createMemberName(buildFile)
 
-	File logFile = new File("${props.buildOutDir}/${member}.natural.load.log")
+//	File logFile = new File("${props.buildOutDir}/${member}.natural.load.log")
 
 //	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
 	
