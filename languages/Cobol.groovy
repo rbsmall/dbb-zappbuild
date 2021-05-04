@@ -51,6 +51,12 @@ sortedList.each { buildFile ->
 	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.cobol.log")
 	if (logFile.exists())
 		logFile.delete()
+		
+//	if (buildUtils.isSQL(logicalFile))
+		MVSExec db2Precompile = createDB2PrecompileCommand(buildFile, logicalFile, member, logFile)
+		
+	//println "***RBS2: Returning db2Precompile - ${db2Precompile}"
+		
 	MVSExec compile = createCompileCommand(buildFile, logicalFile, member, logFile)
 	MVSExec linkEdit = createLinkEditCommand(buildFile, logicalFile, member, logFile)
 
@@ -58,6 +64,10 @@ sortedList.each { buildFile ->
 	MVSJob job = new MVSJob()
 	job.start()
 
+	// precompile the DB2 program
+	if (buildUtils.isSQL(logicalFile))
+		int rc = db2Precompile.execute()
+		
 	// compile the cobol program
 	int rc = compile.execute()
 	int maxRC = props.getFileProperty('cobol_compileMaxRC', buildFile).toInteger()
@@ -155,6 +165,70 @@ def createCobolParms(String buildFile, LogicalFile logicalFile) {
 	return parms
 }
 
+
+/*
+ * createPreCompileCommand - creates a MVSExec command for the DB2 precompiler (buildFile)
+ */
+def createDB2PrecompileCommand(String buildFile, LogicalFile logicalFile, String member, File logFile) {
+	String parms = createCobolParms(buildFile, logicalFile)
+	String preCompiler = props.getFileProperty('db2_preCompiler', buildFile)
+
+	// define the MVSExec command to compile the program
+	MVSExec db2Precompile = new MVSExec().file(buildFile).pgm(preCompiler).parm(parms)
+
+	// add DD statements to the precompile command
+	
+	db2Precompile.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}($member)").options('shr').report(true))
+		
+	db2Precompile.dd(new DDStatement().name("SYSPRINT").options(props.cobol_printTempOptions))
+	(1..2).toList().each { num ->
+		db2Precompile.dd(new DDStatement().name("SYSUT$num").options(props.cobol_tempOptions))
+	}
+
+	// add custom concatenation
+	def compileSyslibConcatenation = props.getFileProperty('cobol_compileSyslibConcatenation', buildFile) ?: ""
+	if (compileSyslibConcatenation) {
+		def String[] syslibDatasets = compileSyslibConcatenation.split(',');
+		for (String syslibDataset : syslibDatasets )
+		db2Precompile.dd(new DDStatement().dsn(syslibDataset).options("shr"))
+	}
+	
+	// add precompiler output dataset
+	db2Precompile.dd(new DDStatement().name("SYSCIN").dsn("&&TEMPSRC").options(props.db2_syscinOptions).pass(true))
+
+	// add a tasklib to the precompile command 
+	db2Precompile.dd(new DDStatement().name("TASKLIB").dsn(props.SDSNLOAD).options("shr"))
+	
+	if (props.SFELLOAD)
+		db2Precompile.dd(new DDStatement().dsn(props.SFELLOAD).options("shr"))
+
+	// add IDz User Build Error Feedback DDs
+	if (props.errPrefix) {
+		db2Precompile.dd(new DDStatement().name("SYSADATA").options("DUMMY"))
+		// SYSXMLSD.XML suffix is mandatory for IDZ/ZOD to populate remote error list
+		db2Precompile.dd(new DDStatement().name("SYSXMLSD").dsn("${props.hlq}.${props.errPrefix}.SYSXMLSD.XML").options(props.cobol_compileErrorFeedbackXmlOptions))
+	}
+
+	// add a copy command to the compile command to copy the SYSPRINT from the temporary dataset to an HFS log file
+	db2Precompile.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding))
+
+	println "***RBS: Returning db2Precompile - ${db2Precompile}"
+	return db2Precompile
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
  * createCompileCommand - creates a MVSExec command for compiling the COBOL program (buildFile)
  */
@@ -172,7 +246,10 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 	}
 	else
 	{
-		compile.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}($member)").options('shr').report(true))
+		if (buildUtils.isSQL(logicalFile))
+			compile.dd(new DDStatement().name("SYSIN").dsn("&&TEMPSRC").options('old delete').report(true))
+		else
+			compile.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}($member)").options('shr').report(true))
 	}
 	
 	compile.dd(new DDStatement().name("SYSPRINT").options(props.cobol_printTempOptions))
@@ -242,7 +319,7 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 	}
 
 	// add a copy command to the compile command to copy the SYSPRINT from the temporary dataset to an HFS log file
-	compile.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding))
+	compile.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding).append(true))
 
 	return compile
 }

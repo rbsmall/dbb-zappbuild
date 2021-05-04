@@ -460,7 +460,7 @@ def createBuildList() {
 	// scan and update source collection with build list files for non-impact builds
 	// since impact build list creation already scanned the incoming changed files
 	// we do not need to scan them again
-	if (!props.impactBuild && !props.userBuild && props.scanOnly) {
+	if (!props.impactBuild && !props.userBuild) {
 		println "** Scanning source code."
 		impactUtils.updateCollection(buildList, null, null, repositoryClient)
 	}
@@ -477,10 +477,6 @@ def finalizeBuildProcess(Map args) {
 	def buildReportEncoding = "UTF-8"
 	def buildReport = BuildReportFactory.getBuildReport()
 	buildReport.save(jsonOutputFile, buildReportEncoding)
-	
-	Class publishLoadModuleScript = new GroovyClassLoader(getClass().getClassLoader()).parseClass(new File("./PublishLoadModule.groovy"));
-	GroovyObject publishLoadModule = (GroovyObject) publishLoadModuleScript.newInstance();
-	publishLoadModule.run()
 
 	// create build report html file
 	def htmlOutputFile = new File("${props.buildOutDir}/BuildReport.html")
@@ -524,9 +520,6 @@ def finalizeBuildProcess(Map args) {
 		buildResult.save()
 
 	}
-	
-	
-//	runScript(new File("PublishLoadModule.groovy"))  	
 
 	// print end build message
 	def endTime = new Date()
