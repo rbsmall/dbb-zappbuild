@@ -35,47 +35,26 @@ def scriptPath = ""
 if (buildList.size() == 0)
 	println("*! No files in build list.  Nothing to do.")
 else {
-	boolean ucMember
-	boolean ucFound
-	def nodes = []
-	
-	// This block of code checks for uppercase characters in member name
-	buildList.each { member ->
-		nodes = member.split("/")
-		ucMember = checkString(nodes[nodes.size() - 1])
-		if (ucMember) {
-			ucFound = true
-			println "Source member ${nodes[nodes.size() - 1]} contains uppercase characters."
+	if (!props.scanOnly) {
+		println("** Invoking build scripts according to build order: ${props.buildOrder}")
+		String[] buildOrderList = props.buildOrder.split(',')
+		String[] testOrderList;
+		if (props.runzTests == "True") { 
+			println("** Invoking test scripts according to test order: ${props.testOrder}")
+			testOrderList = props.testOrder.split(',')
 		}
-	}
-	if (ucFound) {
-		println "*** Uppercase characters found in member(s) in build list.  The build is terminating."
-		println ""
-		props.error = "true"
-		//System.exit(8)
-	}
-	else {
-		if (!props.scanOnly) {
-			println("** Invoking build scripts according to build order: ${props.buildOrder}")
-			String[] buildOrderList = props.buildOrder.split(',')
-			String[] testOrderList;
-			if (props.runzTests == "True") { 
-				println("** Invoking test scripts according to test order: ${props.testOrder}")
-				testOrderList = props.testOrder.split(',')
-			}
-			buildOrder = buildOrderList + testOrderList
-			buildOrder.each { script ->
-				scriptPath = script
-				// Use the ScriptMappings class to get the files mapped to the build script
-				def buildFiles = ScriptMappings.getMappedList(script, buildList)
-                if (buildFiles.size() > 0) {
-					if (scriptPath.startsWith('/'))
-						runScript(new File("${scriptPath}"), ['buildList':buildFiles])
-					else
-						runScript(new File("languages/${scriptPath}"), ['buildList':buildFiles])
-          	    	}
-				processCounter = processCounter + buildFiles.size()
-			}
+		buildOrder = buildOrderList + testOrderList
+		buildOrder.each { script ->
+                        scriptPath = script
+			// Use the ScriptMappings class to get the files mapped to the build script
+			def buildFiles = ScriptMappings.getMappedList(script, buildList)
+                        if (buildFiles.size() > 0) {
+               	                if (scriptPath.startsWith('/'))
+			                runScript(new File("${scriptPath}"), ['buildList':buildFiles])
+			        else
+			                runScript(new File("languages/${scriptPath}"), ['buildList':buildFiles])
+                        }
+			processCounter = processCounter + buildFiles.size()
 		}
 	}
 }
@@ -342,7 +321,7 @@ def populateBuildProperties(String[] args) {
 	props.applicationOutputsCollectionName = "${props.applicationCollectionName}-outputs" as String
 	
 	// do not create a subfolder for user builds
-	props.buildOutDir = ((props.userBuild) ? "${props.outDir}" : "${props.outDir}/${props.applicationBuildLabel}") as String
+	props.buildOutDir = ((props.userBuild) ? "${props.outDir}" : "${props.outDir}") as String
 	
 	if (props.verbose) {
 		println("java.version="+System.getProperty("java.runtime.version"))
@@ -501,15 +480,3 @@ def finalizeBuildProcess(Map args) {
 
 
 
-private static boolean checkString(String str) {
-	char ch;
-	boolean ucFlag = false
-
-	for(int i=0;i < str.length();i++) {
-		ch = str.charAt(i)
-		if (Character.isUpperCase(ch)) {
-			ucFlag = true
-		}
-	}
-	return ucFlag
-}

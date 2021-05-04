@@ -59,6 +59,7 @@ sortedList.each { buildFile ->
 	else {
 	// if this program needs to be link edited . . .
 		String needsLinking = props.getFileProperty('assembler_linkEdit', buildFile)
+		println "***RBS: - assembler_linkEdit - ${needsLinking}"
 		if (needsLinking && needsLinking.toBoolean()) {
 			rc = linkEdit.execute()
 			maxRC = props.getFileProperty('assembler_linkEditMaxRC', buildFile).toInteger()
