@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path=""/>
+	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
+	<classpathentry kind="con" path="GROOVY_SUPPORT"/>
+	<classpathentry kind="con" path="com.ibm.etools.jzos.JZOS_CONTAINER/8.0"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Users/BriceSmall/dbb/groovy-development-environment/dbb.core_1.0.9.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/C:/Users/BriceSmall/dbb/groovy-development-environment/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
