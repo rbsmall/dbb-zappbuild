@@ -135,21 +135,20 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 	// add DD statements to the compile command
 	compile.dd(new DDStatement().name("SYSIN").dsn("${props.easytrieve_srcPDS}($member)").options('shr').report(true))
 	compile.dd(new DDStatement().name("SYSPRINT").options(props.easytrieve_printTempOptions))
-	//compile.dd(new DDStatement().name("SYSMDECK").options(props.easytrieve_tempOptions))
 	(1..2).toList().each { num ->
 		compile.dd(new DDStatement().name("SYSUT$num").options(props.easytrieve_tempOptions))
 	}
 	
 	// Write SYSLIN to temporary dataset if performing link edit
-	//String doLinkEdit = props.getFileProperty('easytrieve_linkEdit', buildFile)
-	//if (doLinkEdit && doLinkEdit.toBoolean())
+	String doLinkEdit = props.getFileProperty('easytrieve_linkEdit', buildFile)
+	if (doLinkEdit && doLinkEdit.toBoolean())
 		compile.dd(new DDStatement().name("SYSLIN").dsn("&&TEMPOBJ").options(props.easytrieve_tempOptions).pass(true))
-	//else
-	//	compile.dd(new DDStatement().name("SYSLIN").dsn("${props.easytrieve_objPDS}($member)").options('shr').output(true))
+	else
+		compile.dd(new DDStatement().name("SYSLIN").dsn("${props.easytrieve_objPDS}($member)").options('shr').output(true))
 		
 	// add a syslib to the compile command with optional bms output copybook and CICS concatenation
 	compile.dd(new DDStatement().name("SYSLIB").dsn(props.easytrieve_cpyPDS).options("shr"))
-	//shekar start change added newly
+	
 	// add custom concatenation
 	def easytrieveSyslibConcatenation = props.getFileProperty('easytrieve_easytrieveSyslibConcatenation', buildFile) ?: ""
 	if (easytrieveSyslibConcatenation) {
@@ -158,33 +157,17 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 		compile.dd(new DDStatement().dsn(syslibDataset).options("shr"))
 	}
 
-	//shekar end change
-	//if (props.bms_cpyPDS)
-	//	compile.dd(new DDStatement().dsn(props.bms_cpyPDS).options("shr"))
-	//if(props.team)
-	//	compile.dd(new DDStatement().dsn(props.easytrieve_BMS_PDS).options("shr"))
-	//if (buildUtils.isCICS(logicalFile))
-	//	compile.dd(new DDStatement().dsn(props.SDFHCOB).options("shr"))
-
 	// add a tasklib to the compile command with optional CICS, DB2, and IDz concatenations
 	String compilerVer = props.getFileProperty('easytrieve_compilerVersion', buildFile)
-	compile.dd(new DDStatement().name("TASKLIB").dsn(props.EZTCOMP_VX).options("shr"))
-	//if (buildUtils.isCICS(logicalFile))
-	//	compile.dd(new DDStatement().dsn(props.SDFHLOAD).options("shr"))
-	//if (buildUtils.isSQL(logicalFile))
-	//	compile.dd(new DDStatement().dsn(props.SDSNLOAD).options("shr"))
-	//if (props.SFELLOAD)
-	//	compile.dd(new DDStatement().dsn(props.SFELLOAD).options("shr"))
+	compile.dd(new DDStatement().name("TASKLIB").dsn(props.EZETLOAD).options("shr"))
+	if (buildUtils.isCICS(logicalFile))
+		compile.dd(new DDStatement().dsn(props.SDFHLOAD).options("shr"))
+	if (buildUtils.isSQL(logicalFile))
+		compile.dd(new DDStatement().dsn(props.SDSNLOAD).options("shr"))
 		
 	// add optional DBRMLIB if build file contains DB2 code
-	//if (buildUtils.isSQL(logicalFile))
-	//	compile.dd(new DDStatement().name("DBRMLIB").dsn("$props.easytrieve_dbrmPDS($member)").options('shr').output(true).deployType('DBRM'))
-
-	// add IDz User Build Error Feedback DDs
-	//if (props.errPrefix) {
-	//	compile.dd(new DDStatement().name("SYSADATA").options("DUMMY"))
-	//	compile.dd(new DDStatement().name("SYSXMLSD").dsn("${props.hlq}.${props.errPrefix}.SYSXMLSD.XML").options('mod keep'))
-	//}
+	if (buildUtils.isSQL(logicalFile))
+		compile.dd(new DDStatement().name("DBRMLIB").dsn("$props.easytrieve_dbrmPDS($member)").options('shr').output(true).deployType('DBRM'))
 		
 	// add a copy command to the compile command to copy the SYSPRINT from the temporary dataset to an HFS log file
 	compile.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding))
@@ -194,7 +177,7 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 
 
 /*
- * createLinkEditCommand - creates a MVSExec xommand for link editing the COBOL object module produced by the compile
+ * createLinkEditCommand - creates a MVSExec command for link editing the COBOL object module produced by the compile
  */
 def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String member, File logFile) {
 	String parms = props.getFileProperty('easytrieve_linkEditParms', buildFile)
@@ -210,7 +193,7 @@ def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String memb
 	
 	// add a syslib to the compile command with optional CICS concatenation
 	linkedit.dd(new DDStatement().name("SYSLIB").dsn(props.easytrieve_objPDS).options("shr"))
-	// shekar start change
+	
 	// add custom concatenation
 	def linkEditSyslibConcatenation = props.getFileProperty('easytrieve_linkEditSyslibConcatenation', buildFile) ?: ""
 	if (linkEditSyslibConcatenation) {
@@ -218,15 +201,14 @@ def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String memb
 		for (String syslibDataset : syslibDatasets )
 		linkedit.dd(new DDStatement().dsn(syslibDataset).options("shr"))
 	}
-	// shekar end change
 
 	linkedit.dd(new DDStatement().dsn(props.SCEELKED).options("shr"))
-	//if (buildUtils.isCICS(logicalFile))
-	//	linkedit.dd(new DDStatement().dsn(props.SDFHLOAD).options("shr"))
+	if (buildUtils.isCICS(logicalFile))
+		linkedit.dd(new DDStatement().dsn(props.SDFHLOAD).options("shr"))
 		
-	//String isMQ = props.getFileProperty('easytrieve_isMQ', buildFile)
-	//if (isMQ && isMQ.toBoolean())
-	//	linkedit.dd(new DDStatement().dsn(props.SCSQLOAD).options("shr"))
+	String isMQ = props.getFileProperty('easytrieve_isMQ', buildFile)
+	if (isMQ && isMQ.toBoolean())
+		linkedit.dd(new DDStatement().dsn(props.SCSQLOAD).options("shr"))
 
 	// add a copy command to the linkedit command to append the SYSPRINT from the temporary dataset to the HFS log file
 	linkedit.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding).append(true))
