@@ -59,7 +59,11 @@ else {
 			println("** Invoking build scripts according to build order: ${props.buildOrder}")
 			String[] buildOrderList = props.buildOrder.split(',')
 			String[] testOrderList;
+<<<<<<< HEAD
 			if (props.runzTests == "True") { 
+=======
+			if (props.runzTests == "True") {
+>>>>>>> 45be58e4bc65640e48347110e74b2efbd97e06f2
 				println("** Invoking test scripts according to test order: ${props.testOrder}")
 				testOrderList = props.testOrder.split(',')
 			}
@@ -68,12 +72,20 @@ else {
 				scriptPath = script
 				// Use the ScriptMappings class to get the files mapped to the build script
 				def buildFiles = ScriptMappings.getMappedList(script, buildList)
+<<<<<<< HEAD
                 if (buildFiles.size() > 0) {
+=======
+				if (buildFiles.size() > 0) {
+>>>>>>> 45be58e4bc65640e48347110e74b2efbd97e06f2
 					if (scriptPath.startsWith('/'))
 						runScript(new File("${scriptPath}"), ['buildList':buildFiles])
 					else
 						runScript(new File("languages/${scriptPath}"), ['buildList':buildFiles])
+<<<<<<< HEAD
           	    	}
+=======
+					  }
+>>>>>>> 45be58e4bc65640e48347110e74b2efbd97e06f2
 				processCounter = processCounter + buildFiles.size()
 			}
 		}
@@ -104,7 +116,7 @@ def initializeBuildProcess(String[] args) {
 	populateBuildProperties(args)
 	
 	// verify required build properties
-	buildUtils.assertBuildProperties(props.requiredBuildProperties)	
+	buildUtils.assertBuildProperties(props.requiredBuildProperties)
 	
 	// create a repository client for this script
 	if (props."dbb.RepositoryClient.url" && !props.userBuild) {
@@ -131,7 +143,7 @@ def initializeBuildProcess(String[] args) {
 			println("*! No repository client URL provided. Unable to reset!")
 		}
 		
-		System.exit(0)	
+		System.exit(0)
 	}
 	
 	// create the work directory (build output)
@@ -214,7 +226,7 @@ options:
 		println "** Input args = ${args[1..-1].join(' ')}"
 	
 	// if help option used, print usage and exit
-    if (opts.help) {
+	if (opts.help) {
 		cli.usage()
 		System.exit(0)
 	}
@@ -338,7 +350,7 @@ def populateBuildProperties(String[] args) {
 	props.topicBranchBuild = (props.applicationCurrentBranch.equals(props.mainBuildBranch)) ? null : 'true'
 	props.applicationBuildGroup = ((props.applicationCurrentBranch) ? "${props.application}-${props.applicationCurrentBranch}" : "${props.application}") as String
 	props.applicationBuildLabel = "build.${props.startTime}" as String
-        props.applicationCollectionName = ((props.applicationCurrentBranch) ? "${props.application}-${props.applicationCurrentBranch}" : "${props.application}") as String
+		props.applicationCollectionName = ((props.applicationCurrentBranch) ? "${props.application}-${props.applicationCurrentBranch}" : "${props.application}") as String
 	props.applicationOutputsCollectionName = "${props.applicationCollectionName}-outputs" as String
 	
 	// do not create a subfolder for user builds
@@ -370,7 +382,7 @@ def createBuildList() {
 	// check if full build
 	if (props.fullBuild) {
 		println "** --fullBuild option selected. $action all programs for application ${props.application}"
-		buildSet = buildUtils.createFullBuildList()			
+		buildSet = buildUtils.createFullBuildList()
 	}
 	// check if impact build
 	else if (props.impactBuild) {
@@ -386,7 +398,7 @@ def createBuildList() {
 	// if build file present add additional files to build list (mandatory build list)
 	if (props.buildFile) {
 		
-		// handle list file	
+		// handle list file
 		if (props.buildFile.endsWith(props.buildListFileExt)) {
 			if (!props.buildFile.trim().startsWith('/'))
 				props.buildFile = "${props.workspace}/${props.buildFile}" as String
@@ -417,7 +429,7 @@ def createBuildList() {
 	// write out build list to file (for documentation, not actually used by build scripts)
 	String buildListFileLoc = "${props.buildOutDir}/buildList.${props.buildListFileExt}"
 	println "** Writing build list file to $buildListFileLoc"
-	File buildListFile = new File(buildListFileLoc)	
+	File buildListFile = new File(buildListFileLoc)
 	String enc = props.logEncoding ?: 'IBM-1047'
 	buildListFile.withWriter(enc) { writer ->
 		buildList.each { file ->

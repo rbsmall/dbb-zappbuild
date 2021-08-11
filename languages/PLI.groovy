@@ -149,6 +149,15 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 		compile.dd(new DDStatement().dsn(props.bms_cpyPDS).options("shr"))
 	if(props.team)
 		compile.dd(new DDStatement().dsn(props.pli_BMS_PDS).options("shr"))
+		
+	// add custom concatenation
+	def compileSyslibConcatenation = props.getFileProperty('pli_compileSyslibConcatenation', buildFile) ?: ""
+	if (compileSyslibConcatenation) {
+		def String[] syslibDatasets = compileSyslibConcatenation.split(',');
+		for (String syslibDataset : syslibDatasets )
+		compile.dd(new DDStatement().dsn(syslibDataset).options("shr"))
+	}
+	
 	if (buildUtils.isCICS(logicalFile))
 		compile.dd(new DDStatement().dsn(props.SDFHCOB).options("shr"))
 
@@ -190,6 +199,8 @@ def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String memb
 
 	// Create the link stream if needed
 	if ( linkEditStream != null ) {
+		def langQualifier = "linkedit"
+		buildUtils.createLanguageDatasets(langQualifier)
 		def lnkFile = new File("${props.buildOutDir}/linkCard.lnk")
 		if (lnkFile.exists())
 			lnkFile.delete()
@@ -224,9 +235,19 @@ def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String memb
 
 	// add a syslib to the compile command with optional CICS concatenation
 	linkedit.dd(new DDStatement().name("SYSLIB").dsn(props.pli_objPDS).options("shr"))
+	// add custom concatenation
+	def linkEditSyslibConcatenation = props.getFileProperty('pli_linkEditSyslibConcatenation', buildFile) ?: ""
+	if (linkEditSyslibConcatenation) {
+		def String[] syslibDatasets = syslibConcatenation.split(',');
+		for (String syslibDataset : syslibDatasets )
+		linkedit.dd(new DDStatement().dsn(syslibDataset).options("shr"))
+	}
 	linkedit.dd(new DDStatement().dsn(props.SCEELKED).options("shr"))
 	if (buildUtils.isCICS(logicalFile))
 		linkedit.dd(new DDStatement().dsn(props.SDFHLOAD).options("shr"))
+
+	if (buildUtils.isSQL(logicalFile))
+		linkedit.dd(new DDStatement().dsn(props.SDSNLOAD).options("shr"))
 
 	// add a copy command to the linkedit command to append the SYSPRINT from the temporary dataset to the HFS log file
 	linkedit.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding).append(true))

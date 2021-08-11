@@ -37,14 +37,7 @@ buildUtils.createLanguageDatasets(langQualifier)
 	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
 
 	// Parse the playback from the bzucfg file
-	String xml = new File(buildUtils.getAbsolutePath(buildFile)).getText("IBM-1047")
-
-	String playback;
-	for (line in xml.split('\n')) {
-		if (line.contains("runner:playback moduleName")) {
-			playback = line.split("=")[1].split("\"")[1]
-		}
-	}
+	String playback = getPlaybackFile(buildFile);
 	
 	// Upload BZUCFG file to a BZUCFG Dataset
 	buildUtils.copySourceFiles(buildUtils.getAbsolutePath(buildFile), props.zunit_bzucfgPDS, props.zunit_bzuplayPDS, dependencyResolver)
@@ -65,10 +58,22 @@ buildUtils.createLanguageDatasets(langQualifier)
 // BZUCBK=${props.cobol_testcase_loadPDS},
 // BZULOD=${props.cobol_loadPDS},
 //  PARM=('STOP=E,REPORT=XML')
-//BZUPLAY DD DISP=SHR,
+//REPLAY.BZUPLAY DD DISP=SHR,
 // DSN=${props.zunit_bzuplayPDS}(${playback})
-//BZURPT DD DISP=SHR,
+//REPLAY.BZURPT DD DISP=SHR,
 // DSN=${props.zunit_bzureportPDS}(${member})
+"""
+if (props.codeZunitCoverage && props.codeZunitCoverage.toBoolean()) {
+   jcl +=
+   "//CEEOPTS DD *                        \n"   +
+   ( ( props.codeCoverageHeadlessHost != null && props.codeCoverageHeadlessPort != null ) ?
+       "TEST(,,,TCPIP&${props.codeCoverageHeadlessHost}%${props.codeCoverageHeadlessPort}:*)  \n" :
+       "TEST(,,,DBMDT:*)  \n" ) +
+   "ENVAR(                                \n" +
+   '"'+ "EQA_STARTUP_KEY=CC,${member},testid=${member},moduleinclude=${member}" + '")' + "\n" +
+   "/* \n"
+}
+jcl += """\
 //*
 //IFGOOD IF RC<=4 THEN
 //GOODRC  EXEC PGM=IEFBR14
@@ -77,7 +82,8 @@ buildUtils.createLanguageDatasets(langQualifier)
 //             SPACE=(TRK,(1,1),RLSE)
 //       ENDIF
 """
-	println(jcl)
+	if (props.verbose) println(jcl)
+		
 	def dbbConf = System.getenv("DBB_CONF")
 
 	// Create jclExec
@@ -129,17 +135,21 @@ buildUtils.createLanguageDatasets(langQualifier)
 		rc = zUnitRunJCL.maxRC.split("CC")[1].toInteger()
 
 		// manage processing the RC, up to your logic. You might want to flag the build as failed.
-		if (rc < props.zunit_maxPassRC.toInteger()){
+		if (rc <= props.zunit_maxPassRC.toInteger()){
 			println   "***  zUnit Test Job ${zUnitRunJCL.submittedJobId} completed with $rc "
 			// Store Report in Workspace
 			new CopyToHFS().dataset(props.zunit_bzureportPDS).member(member).file(reportLogFile).hfsEncoding(props.logEncoding).append(false).copy()
-		} else if (props.zunit_maxPassRC.toInteger() >= 4 && rc <props.zunit_maxWarnRC.toInteger()){
+			// printReport 
+			printReport(reportLogFile)
+		} else if (rc <= props.zunit_maxWarnRC.toInteger()){
 			String warningMsg = "*! The zunit test returned a warning ($rc) for $buildFile"
 			// Store Report in Workspace
 			new CopyToHFS().dataset(props.zunit_bzureportPDS).member(member).file(reportLogFile).hfsEncoding(props.logEncoding).append(false).copy()
+			// print warning and report
 			println warningMsg
+			printReport(reportLogFile)
 			buildUtils.updateBuildResult(warningMsg:warningMsg,logs:["${member}_zunit.log":logFile],client:getRepositoryClient())
-		} else { // rc >= props.zunit_maxWarnRC.toInteger()
+		} else { // rc > props.zunit_maxWarnRC.toInteger()
 			props.error = "true"
 			String errorMsg = "*! The zunit test failed with RC=($rc) for $buildFile "
 			println(errorMsg)
@@ -167,7 +177,41 @@ def getRepositoryClient() {
 	return repositoryClient
 }
 
+def getPlaybackFile(String xmlFile) {
+	String xml = new File(buildUtils.getAbsolutePath(xmlFile)).getText("IBM-1047")
+	def parser = new XmlParser().parseText(xml)
+	return("${parser.'runner:playback'.@moduleName[0]}")
+}
 
+/**
+ *  Parsing the result file and prints summary of the result
+ */
+def printReport(File resultFile) {
+
+	String reportString
+	if (props.logEncoding != null) //if set
+		reportString = new FileInputStream(resultFile).getText(props.logEncoding)
+	else // Default ibm-1047
+		reportString = new FileInputStream(resultFile).getText("IBM-1047")
+
+	try {
+
+		def runnerResult = new XmlParser().parseText(reportString)
+		def testCase = runnerResult.testCase
+		println "****************** Module ${testCase.@moduleName} ******************"
+		println "Name:       ${testCase.@name[0]}"
+		println "Status:     ${testCase.@result[0]}"
+		println "Test cases: ${testCase.@tests[0]} (${testCase.@passed[0]} passed, ${testCase.@warn[0]} failed, ${testCase.@errors[0]} errors)"
+		println "Details: "
+		testCase.test.each { test ->
+			println "      ${test.@name}   ${test.@result}"
+		}
+		println "****************** Module ${testCase.@moduleName} ****************** \n"
+	} catch (Exception e) {
+		print "! Reading zUnit result failed."
+	}
+
+}
 
 
 

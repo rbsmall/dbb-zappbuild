@@ -332,7 +332,7 @@ def relativizeFolderPath(String folder, String path) {
  * getScannerInstantiates - returns the mapped scanner or default scanner
  */
 def getScanner(String buildFile){
-	if (props.runzTests == "True") {
+	if (props.runzTests && props.runzTests.toBoolean()) {
 		scannerUtils= loadScript(new File("ScannerUtilities.groovy"))
 		scanner = scannerUtils.getScanner(buildFile)
 	}
@@ -368,5 +368,30 @@ def createDatasets(String[] datasets, String options) {
 				println "** Creating / verifying build dataset ${dataset}"
 		}
 	}
+}
+
+/*
+ * returns languagePrefix for language script name or null if not defined.
+ */
+def getLangPrefix(String scriptName){
+	def langPrefix = null
+	switch(scriptName) {
+		case "Cobol.groovy":
+			langPrefix = 'cobol'
+			break;
+		case "LinkEdit.groovy" :
+			langPrefix = 'linkedit'
+			break;
+		case "PLI.groovy":
+			langPrefix = 'pli'
+			break;
+		case "Assembler.groovy":
+			langPrefix = 'assembler'
+			break;
+		default:
+			if (props.verbose) println ("*** No language prefix defined for $scriptName.")
+			break;
+	}
+	return langPrefix
 }
 
