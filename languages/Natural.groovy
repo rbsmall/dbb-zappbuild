@@ -42,15 +42,6 @@ buildUtils.createLanguageDatasets(langQualifier)
 	if (logFile.exists())
 		logFile.delete()
 
-	
-	
-	
-	
-	
-	
-	
-	
-
 	// Create JCLExec String
 	String jobcard = props.natural_jobCard.replace("\\n", "\n")
 	if (props.verbose) println ("*** Jobcard is ${jobcard}")
@@ -67,58 +58,7 @@ SYSOBJH
 ${props.natural_loadParms}    
 STOP
 /*
-"""
-	
-	if (props.verbose) println(jcl)
-
-	def dbbConf = System.getenv("DBB_CONF")
-
-	// Create jclExec
-	def naturalLoadJCL = new JCLExec().text(jcl)
-	naturalLoadJCL.confDir(dbbConf)
-
-	// Execute jclExec
-	naturalLoadJCL.execute()
-
-	/**
-	 * Store results
-	 */
-	def rc = 99
-	// Save Job Spool to logFile
-	naturalLoadJCL.saveOutput(logFile, props.logEncoding)
-
-	// Splitting the String into a StringArray using CC as the separator
-	def jobRcStringArray = naturalLoadJCL.maxRC.split("CC")
-	println "*** jobRcStringArray - ${jobRcStringArray}"
-
-	// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
-	if ( jobRcStringArray.length > 1 ){
-		// Ok, the string can be split because it contains the keyword CC : Splitting by CC the second record contains the actual RC
-		rc = naturalLoadJCL.maxRC.split("CC")[1].toInteger()
-
-		// manage processing the RC, up to your logic. You might want to flag the build as failed.
-		if (rc <= props.natural_maxRC.toInteger()){
-			println   "***  Natural Load Job ${naturalLoadJCL.submittedJobId} completed with $rc "
-			// Store Report in Workspace
-		} else { 
-			props.error = "true"
-			String errorMsg = "*! The Natural Load Job failed with RC=($rc) for $buildFile "
-			println(errorMsg)
-			buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
-		}
-	}
-	else {
-		// We don't see the CC, assume an exception
-		props.error = "true"
-		String errorMsg = "*!  Natural Load Job ${naturalLoadJCL.submittedJobId} failed with ${naturalLoadJCL.maxRC}"
-		println(errorMsg)
-		buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
-	}
-
-	if (rc <= props.natural_maxRC.toInteger()) {
-		jcl = jobcard
-		jcl += """\
-\n//*
+//*
 //SYSOBJH  EXEC PGM=NAT23BA,REGION=4M,
 //  PARM=('PARM=${props.natural_jobParms}')
 //CMPRINT  DD  SYSOUT=*
@@ -129,56 +69,60 @@ ${props.natural_buildParms}
 XREF ON
 CATALL ${member} ALL STOW CC
 /*
+//*
+//FLUSHQ  EXEC PGM=NAT23BA,
+//  PARM=('PARM=${props.natural_flushParms}')
+//CMPRINT  DD  SYSOUT=*
+//CMSYNIN  DD *
+LOGON DBAUTILS
+BPDELET1
+XREF ON
+/*
 """
+			
+	if (props.verbose) println(jcl)
 		
-		if (props.verbose) println(jcl)
+	// Create jclExec
+	def naturalBuildJCL = new JCLExec().text(jcl)
+	naturalBuildJCL.confDir(dbbConf)
+				// Execute jclExec
+	naturalBuildJCL.execute()
+		/**
+		* Store results
+		*/
 	
-//			def dbbConf = System.getenv("DBB_CONF")
+	// Save Job Spool to logFile
+	naturalBuildJCL.saveOutput(logFile, props.logEncoding)
 	
-			// Create jclExec
-			def naturalBuildJCL = new JCLExec().text(jcl)
-			naturalBuildJCL.confDir(dbbConf)
+	// Splitting the String into a StringArray using CC as the separator
+	jobRcStringArray = naturalBuildJCL.maxRC.split("CC")
+	println "*** jobRcStringArray - ${jobRcStringArray}"
 	
-			// Execute jclExec
-			naturalBuildJCL.execute()
+	// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
+	if ( jobRcStringArray.length > 1 ){
+		// Ok, the string can be split because it contains the keyword CC : Splitting by CC the second record contains the actual RC
+		rc = naturalBuildJCL.maxRC.split("CC")[1].toInteger()
 	
-			/**
-			* Store results
-			*/
-	
-			// Save Job Spool to logFile
-			naturalBuildJCL.saveOutput(logFile, props.logEncoding)
-	
-			// Splitting the String into a StringArray using CC as the separator
-			jobRcStringArray = naturalBuildJCL.maxRC.split("CC")
-			println "*** jobRcStringArray - ${jobRcStringArray}"
-	
-			// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
-			if ( jobRcStringArray.length > 1 ){
-				// Ok, the string can be split because it contains the keyword CC : Splitting by CC the second record contains the actual RC
-				rc = naturalBuildJCL.maxRC.split("CC")[1].toInteger()
-	
-				// manage processing the RC, up to your logic. You might want to flag the build as failed.
-				if (rc <= props.natural_maxRC.toInteger()){
-					println   "***  Natural Build Job ${naturalBuildJCL.submittedJobId} completed with $rc "
-					// Store Report in Workspace
-				} else {
-					props.error = "true"
-					String errorMsg = "*! The Natural Build Job failed with RC=($rc) for $buildFile "
-					println(errorMsg)
-					buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
-				}
-			}
-			else {
-				// We don't see the CC, assume an exception
-				props.error = "true"
-				String errorMsg = "*!  Natural Load Job ${naturalBuildJCL.submittedJobId} failed with ${naturalBuildJCL.maxRC}"
-				println(errorMsg)
-				buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
-			}
+		// manage processing the RC, up to your logic. You might want to flag the build as failed.
+		if (rc <= props.natural_maxRC.toInteger()){
+			println   "***  Natural Build Job ${naturalBuildJCL.submittedJobId} completed with $rc "
+			// Store Report in Workspace
+		} else {
+			props.error = "true"
+			String errorMsg = "*! The Natural Build Job failed with RC=($rc) for $buildFile "
+			println(errorMsg)
+			buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
 		}
-
+	}
+	else {
+		// We don't see the CC, assume an exception
+		props.error = "true"
+		String errorMsg = "*!  Natural Load Job ${naturalBuildJCL.submittedJobId} failed with ${naturalBuildJCL.maxRC}"
+		println(errorMsg)
+		buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
+	}
 }
+
 
 /**
  * Methods
