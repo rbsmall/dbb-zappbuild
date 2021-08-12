@@ -82,6 +82,8 @@ XREF ON
 """
 			
 	if (props.verbose) println(jcl)
+
+	def dbbConf = System.getenv("DBB_CONF")
 		
 	// Create jclExec
 	def naturalBuildJCL = new JCLExec().text(jcl)
