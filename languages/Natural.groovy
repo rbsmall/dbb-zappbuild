@@ -79,7 +79,7 @@ XREF ON
 LOGON DBAUTILS                               
 SYSPROF                                      
 SYSOBJH                                      
-UNLOAD ${member}  LIB ${natural_library} OBJTYPE ${natural_objType}     
+UNLOAD ${member}  LIB ${props.natural_library} OBJTYPE ${props.natural_objType}     
 STOP
 /*
 """
