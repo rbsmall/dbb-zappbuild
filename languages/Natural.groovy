@@ -13,7 +13,7 @@ import groovy.transform.*
 @Field RepositoryClient repositoryClient
 
 println("** Building files mapped to ${this.class.getName()}.groovy script")
-println("** Props ${props}")
+if (props.verbose) println("** Props ${props}")
 
 // verify required build properties
 buildUtils.assertBuildProperties(props.natural_requiredBuildProperties)
@@ -26,20 +26,11 @@ buildUtils.createLanguageDatasets(langQualifier)
 (argMap.buildList).each { buildFile ->
 	println "*** Building file $buildFile"
 
-//	String member = CopyToPDS.createMemberName(buildFile)
-
-//	File logFile = new File("${props.buildOutDir}/${member}.natural.load.log")
-
-//	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
-	
 	// copy build file and dependency files to data sets
-	String rules = props.getFileProperty('natural_resolutionRules', buildFile)
-//	DependencyResolver dependencyResolver = buildUtils.createDependencyResolver(buildFile, rules)
-//	buildUtils.copySourceFiles(buildFile, props.natural_srcPDS, props.natural_incPDS, dependencyResolver)
+	String rules  = props.getFileProperty('natural_resolutionRules', buildFile)
 	buildUtils.copySourceFiles(buildFile, props.natural_srcPDS, props.natural_incPDS, null)
-//	LogicalFile logicalFile = dependencyResolver.getLogicalFile()
 	String member = CopyToPDS.createMemberName(buildFile)
-	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.natural.log")
+	File logFile  = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.natural.log")
 	if (logFile.exists())
 		logFile.delete()
 
