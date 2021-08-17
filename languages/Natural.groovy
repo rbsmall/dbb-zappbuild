@@ -48,7 +48,7 @@ buildUtils.createLanguageDatasets(langQualifier)
 	String jcl = jobcard
 	jcl += """\
 \n//*
-//SYSOBJH  EXEC PGM=NAT23BA,REGION=4M, 
+//LOAD     EXEC PGM=NAT23BA,REGION=4M, 
 //  PARM=('PARM=${props.natural_jobParms}')        
 //CMPRINT  DD  SYSOUT=*
 //CMWKF01  DD DISP=SHR,DSN=${props.natural_srcPDS} 
@@ -59,7 +59,7 @@ ${props.natural_loadParms}
 STOP
 /*
 //*
-//SYSOBJH  EXEC PGM=NAT23BA,REGION=4M,
+//BUILD    EXEC PGM=NAT23BA,REGION=4M,COND=(${props.natural_maxRC},LE,LOAD),
 //  PARM=('PARM=${props.natural_jobParms}')
 //CMPRINT  DD  SYSOUT=*
 //CMWKF01  DD DISP=SHR,DSN=${props.natural_srcPDS}
@@ -70,7 +70,7 @@ XREF ON
 CATALL ${member} ALL STOW CC
 /*
 //*
-//FLUSHQ  EXEC PGM=NAT23BA,
+//FLUSHQ  EXEC PGM=NAT23BA,COND=(${props.natural_maxRC},LE,BUILD,
 //  PARM=('PARM=${props.natural_flushParms}')
 //CMPRINT  DD  SYSOUT=*
 //CMSYNIN  DD *
