@@ -70,7 +70,7 @@ XREF ON
 CATALL ${member} ALL STOW CC
 /*
 //*
-//FLUSHQ  EXEC PGM=NAT23BA,COND=(${props.natural_maxRC},LE,BUILD,
+//FLUSHQ  EXEC PGM=NAT23BA,COND=(${props.natural_maxRC},LE,BUILD),
 //  PARM=('PARM=${props.natural_flushParms}')
 //CMPRINT  DD  SYSOUT=*
 //CMSYNIN  DD *
