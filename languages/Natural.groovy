@@ -69,6 +69,19 @@ LOGON DBAUTILS
 BPDELET1
 XREF ON
 /*
+//*
+//UNLOAD   EXEC PGM=NAT23BA,REGION=4M,COND=(${props.natural_maxRC},LE,FLUSHQ),    
+//  PARM=('PARM=${props.natural_unloadParms}')  
+//CMPRINT  DD  SYSOUT=*
+//CMWKF01  DD DSN=${props.natural_unloadPDS}
+//SYSUDUMP DD SYSOUT=*
+//CMSYNIN  DD *
+LOGON DBAUTILS                               
+SYSPROF                                      
+SYSOBJH                                      
+UNLOAD ${member}  LIB ${natural_library} OBJTYPE ${natural_objType}     
+STOP
+/*
 """
 			
 	if (props.verbose) println(jcl)
