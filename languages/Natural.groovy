@@ -89,7 +89,7 @@ XREF ON
 	
 	// Splitting the String into a StringArray using CC as the separator
 	jobRcStringArray = naturalBuildJCL.maxRC.split("CC")
-	println "*** jobRcStringArray - ${jobRcStringArray}"
+	if (props.verbose) println "*** jobRcStringArray - ${jobRcStringArray}"
 	
 	// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
 	if ( jobRcStringArray.length > 1 ){
