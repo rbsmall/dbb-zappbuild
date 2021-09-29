@@ -14,7 +14,9 @@ import groovy.io.FileType
 @Field RepositoryClient repositoryClient
 
 println("** Building files mapped to ${this.class.getName()}.groovy script")
-if (props.verbose) println("** Props ${props}")
+
+if (props.verbose) 
+	println("** Props ${props}")
 
 // verify required build properties
 buildUtils.assertBuildProperties(props.natural_requiredBuildProperties)
@@ -23,10 +25,7 @@ def langQualifier = "natural"
 buildUtils.createLanguageDatasets(langQualifier)
 
 // copy copycode files
-//if(!props.userBuild) {
-	copyCopycodeFiles()
-//}
-
+copyCopycodeFiles()
 
 // iterate through build list
 (argMap.buildList).each { buildFile ->
@@ -108,7 +107,8 @@ STOP
 	
 	// Splitting the String into a StringArray using CC as the separator
 	jobRcStringArray = naturalBuildJCL.maxRC.split("CC")
-	if (props.verbose) println "*** jobRcStringArray - ${jobRcStringArray}"
+	if (props.verbose) 
+		println "*** jobRcStringArray - ${jobRcStringArray}"
 	
 	// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
 	if ( jobRcStringArray.length > 1 ){
