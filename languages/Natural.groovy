@@ -170,7 +170,10 @@ def copyCopycodeFiles() {
 			
 		def fileList = []
 		
-		def dir = new File("${props.application}/${it}")
+		if (props.userBuild)
+			def dir = new File("${props.application}/${it}")
+		else
+			def dir = new file("${props.workDir}/${props.application}/${it})"
 		dir.eachFileRecurse (FileType.FILES) { file ->       // this is retrieving the full path of all files in the scanned directory
 		  fileList << file
 	
