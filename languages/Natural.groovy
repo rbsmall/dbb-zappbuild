@@ -158,7 +158,6 @@ def splitCCParms(String parms) {
 
 
 def copyCopycodeFiles() {
-	//def copycodeFolders = props.getFileProperty('natural_copycodeFolders', null) ?: ""
 	def copycodeFolders = props.natural_copycodeFolders
 	
 	if (props.verbose)
@@ -169,11 +168,12 @@ def copyCopycodeFiles() {
 			println "Processing files for ${it}"
 			
 		def fileList = []
+		def dir
 		
-		if (props.userBuild)
-			def dir = new File("${props.application}/${it}")
+		if (props.userBuild) 
+			dir = new File("${props.application}/${it}")
 		else
-			def dir = new File("${props.workDir}/${props.application}/${it}")
+			dir = new File("${props.workspace}${props.application}/${it}")
 			
 		dir.eachFileRecurse (FileType.FILES) { file ->       // this is retrieving the full path of all files in the scanned directory
 		  fileList << file
