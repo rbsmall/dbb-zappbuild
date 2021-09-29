@@ -3,13 +3,14 @@ import com.ibm.dbb.repository.*
 import com.ibm.dbb.dependency.*
 import com.ibm.dbb.build.*
 import groovy.transform.*
+import groovy.io.FileType
 
 
 // define script properties
 @Field BuildProperties props = BuildProperties.getInstance()
-@Field def buildUtils= loadScript(new File("${props.zAppBuildDir}/utilities/BuildUtilities.groovy"))
-@Field def impactUtils= loadScript(new File("${props.zAppBuildDir}/utilities/ImpactUtilities.groovy"))
-@Field def bindUtils= loadScript(new File("${props.zAppBuildDir}/utilities/BindUtilities.groovy"))
+@Field def buildUtils        = loadScript(new File("${props.zAppBuildDir}/utilities/BuildUtilities.groovy"))
+@Field def impactUtils       = loadScript(new File("${props.zAppBuildDir}/utilities/ImpactUtilities.groovy"))
+@Field def bindUtils         = loadScript(new File("${props.zAppBuildDir}/utilities/BindUtilities.groovy"))
 @Field RepositoryClient repositoryClient
 
 println("** Building files mapped to ${this.class.getName()}.groovy script")
@@ -21,14 +22,19 @@ buildUtils.assertBuildProperties(props.natural_requiredBuildProperties)
 def langQualifier = "natural"
 buildUtils.createLanguageDatasets(langQualifier)
 
+// copy copycode files
+//if(!props.userBuild) {
+	copyCopycodeFiles()
+//}
+
 
 // iterate through build list
 (argMap.buildList).each { buildFile ->
 	println "*** Building file $buildFile"
 
 	// copy build file and dependency files to data sets
-	String rules  = props.getFileProperty('natural_resolutionRules', buildFile)
-	buildUtils.copySourceFiles(buildFile, props.natural_srcPDS, props.natural_incPDS, null)
+//	String rules  = props.getFileProperty('natural_resolutionRules', buildFile)
+	buildUtils.copySourceFiles(buildFile, props.natural_srcPDS, null, null)
 	String member = CopyToPDS.createMemberName(buildFile)
 	File logFile  = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.natural.log")
 	if (logFile.exists())
@@ -151,4 +157,39 @@ def splitCCParms(String parms) {
 		outParms.add(parms.substring((chunk * 72), (chunk * 72) + maxLength));
 	}
 	return outParms
+}
+
+
+def copyCopycodeFiles() {
+	//def copycodeFolders = props.getFileProperty('natural_copycodeFolders', null) ?: ""
+	def copycodeFolders = props.natural_copycodeFolders
+	
+	if (props.verbose)
+		println "copycodeFolders = ${copycodeFolders}"
+		
+	ccFolderList = copycodeFolders.split(',').collect{it as String}.each {
+		if (props.verbose)
+			println "Processing files for ${it}"
+			
+		def fileList = []
+		
+		def dir = new File("${props.application}/${it}")
+		dir.eachFileRecurse (FileType.FILES) { file ->       // this is retrieving the full path of all files in the scanned directory
+		  fileList << file
+	
+		  String myPath = file
+		  
+		  if (props.verbose) 
+			  println "myPath is ${myPath}"
+			  
+		  String[] pathNodes
+		  pathNodes     = myPath.split("/")                  // separating the path into the individual folders/files
+		  memberName    = pathNodes.last().substring(0,pathNodes.last().indexOf("."))  // getting member name from nodes
+		  
+		  if (props.verbose)
+			  println "*** copying ${memberName} to ${props.natural_incPDS}"
+			  
+		  new CopyToPDS().file(new File(myPath)).dataset(props.natural_incPDS).member(memberName).copy();		 
+		}
+	  }
 }
