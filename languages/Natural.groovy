@@ -125,7 +125,7 @@ STOP
 	}
 	else {
 		// We don't see the CC, assume an exception
-		props.error = "true"
+//		props.error = "true"
 		String errorMsg = "*!  Natural Load Job ${naturalBuildJCL.submittedJobId} failed with ${naturalBuildJCL.maxRC}"
 		println(errorMsg)
 		buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
