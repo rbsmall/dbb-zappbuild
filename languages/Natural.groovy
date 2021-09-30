@@ -84,24 +84,26 @@ STOP
 /*
 """
 			
-	if (props.verbose) println(jcl)
+	if (props.verbose) 
+		println(jcl)
 
-	def dbbConf = System.getenv("DBB_CONF")
-		
 	// Create jclExec
 	def naturalBuildJCL = new JCLExec().text(jcl)
-				// Execute jclExec
+	
+	// Execute jclExec
 	naturalBuildJCL.execute()
-		/**
-		* Store results
-		*/
+	
+	/**
+	* Store results
+	*/
 	
 	// Save Job Spool to logFile
 	naturalBuildJCL.saveOutput(logFile, props.logEncoding)
 	
 	// Splitting the String into a StringArray using CC as the separator
 	jobRcStringArray = naturalBuildJCL.maxRC.split("CC")
-	if (props.verbose) println "*** jobRcStringArray - ${jobRcStringArray}"
+	if (props.verbose) 
+		println "*** jobRcStringArray - ${jobRcStringArray}"
 	
 	// This evals the number of items in the ARRAY! Dont get confused with the returnCode itself
 	if ( jobRcStringArray.length > 1 ){
