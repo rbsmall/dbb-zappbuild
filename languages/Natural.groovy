@@ -9,8 +9,8 @@ import groovy.io.FileType
 // define script properties
 @Field BuildProperties props = BuildProperties.getInstance()
 @Field def buildUtils        = loadScript(new File("${props.zAppBuildDir}/utilities/BuildUtilities.groovy"))
-@Field def impactUtils       = loadScript(new File("${props.zAppBuildDir}/utilities/ImpactUtilities.groovy"))
-@Field def bindUtils         = loadScript(new File("${props.zAppBuildDir}/utilities/BindUtilities.groovy"))
+//@Field def impactUtils       = loadScript(new File("${props.zAppBuildDir}/utilities/ImpactUtilities.groovy"))
+//@Field def bindUtils         = loadScript(new File("${props.zAppBuildDir}/utilities/BindUtilities.groovy"))
 @Field RepositoryClient repositoryClient
 
 println("** Building files mapped to ${this.class.getName()}.groovy script")
@@ -93,7 +93,7 @@ STOP
 		
 	// Create jclExec
 	def naturalBuildJCL = new JCLExec().text(jcl)
-	naturalBuildJCL.confDir(dbbConf)
+//	naturalBuildJCL.confDir(dbbConf)
 				// Execute jclExec
 	naturalBuildJCL.execute()
 		/**
