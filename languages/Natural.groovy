@@ -9,8 +9,6 @@ import groovy.io.FileType
 // define script properties
 @Field BuildProperties props = BuildProperties.getInstance()
 @Field def buildUtils        = loadScript(new File("${props.zAppBuildDir}/utilities/BuildUtilities.groovy"))
-//@Field def impactUtils       = loadScript(new File("${props.zAppBuildDir}/utilities/ImpactUtilities.groovy"))
-//@Field def bindUtils         = loadScript(new File("${props.zAppBuildDir}/utilities/BindUtilities.groovy"))
 @Field RepositoryClient repositoryClient
 
 println("** Building files mapped to ${this.class.getName()}.groovy script")
@@ -30,7 +28,6 @@ copyCopycodeFiles()
 	println "*** Building file $buildFile"
 
 	// copy build file and dependency files to data sets
-//	String rules  = props.getFileProperty('natural_resolutionRules', buildFile)
 	buildUtils.copySourceFiles(buildFile, props.natural_srcPDS, null, null)
 	String member = CopyToPDS.createMemberName(buildFile)
 	File logFile  = new File( props.userBuild ? "${props.buildOutDir}/${member}.log" : "${props.buildOutDir}/${member}.natural.log")
@@ -93,7 +90,6 @@ STOP
 		
 	// Create jclExec
 	def naturalBuildJCL = new JCLExec().text(jcl)
-//	naturalBuildJCL.confDir(dbbConf)
 				// Execute jclExec
 	naturalBuildJCL.execute()
 		/**
@@ -126,7 +122,7 @@ STOP
 	else {
 		// We don't see the CC, assume an exception
 //		props.error = "true"
-		String errorMsg = "*!  Natural Load Job ${naturalBuildJCL.submittedJobId} failed with ${naturalBuildJCL.maxRC}"
+		String errorMsg = "*!  Natural Load Job ${naturalBuildJCL.submittedJobId} failed with an unknown error"
 		println(errorMsg)
 		buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${member}_natural.log":logFile],client:getRepositoryClient())
 	}
