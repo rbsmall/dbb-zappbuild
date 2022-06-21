@@ -7,6 +7,7 @@
       *    CURRENT DATE.
       *
       *    (C) 2008 IBM.
+      *    Change for demo
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SOURCE-COMPUTER. IBM-FLEX-ES.
